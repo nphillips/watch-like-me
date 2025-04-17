@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## WatchLikeMe Technical Requirements
 
-## Getting Started
+This document outlines the requirements for the WatchLikeMe application, structured clearly for readability and ease of implementation.
 
-First, run the development server:
+## Pages
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Home Page (`/`)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Title:** "WatchLikeMe Home"
+- **Visibility:** Both logged-in and logged-out users
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### Logged-Out Experience
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Displays `[search-channels]` by default, set to YouTube search only.
+- Users enter search keywords or paste YouTube channel/video URLs.
+- A floating suggestions menu appears with related YouTube channels/videos.
+- Users select from suggestions; clicking outside dismisses the menu.
+- Selecting a suggestion replaces `[search-channels]` with `[channels-list]` and displays `[search-channels__start-new-search]` for new searches.
+- `[channels-list]` is in _selection mode_, allowing channel/video selection.
+- `[channels-list__row]` items can expand/collapse:
+  - Collapsed: Shows `[channels-list__row__header__checkbox]` and expand toggle.
+  - Expanded: Displays a horizontally scrolling video panel.
+- Layout variations:
+  - Main area: Rows scroll horizontally.
+  - `[side-modal]`: Grid layout.
+- Adding a new channel via `[search-channels]` appends it to `[channels-list]`.
+  - Channel selection: Adds as collapsed row.
+  - Video selection: Adds as expanded, with video selected.
 
-## Learn More
+#### Logged-In Experience
 
-To learn more about Next.js, take a look at the following resources:
+- If not linked to YouTube:
+  - Shows disabled `[dashboard__start-new-share-button]`, a "Log in to YouTube" button, and `[search-channels]`.
+  - `[search-channels]` defaults to YouTube search.
+- Linked accounts:
+  - Displays abridged `[dashboard__collections-list]` (full list accessible via "More" button).
+  - `[search-channels]` defaults to user's subscribed channels, displaying a `[channels-list]` in _read only mode_.
+  - Typing in `[search-channels]` filters subscribed channels live without the floating suggestions menu.
+  - Toggling to YouTube search enables floating suggestions menu, behaving as logged-out.
+- Selecting a suggestion replaces `[channels-list]`:
+  - Channel selection: Adds as collapsed row.
+  - Video selection: Adds as expanded, with video selected.
+- `[channels-list]` modes:
+  - _Read-only mode_: Channels/videos viewable, non-selectable.
+  - _Selection mode_ (triggered by `[dashboard__start-new-share-button]`): Allows selections, with channel selections overriding videos.
+  - Selecting a video within a selected channel deselects the channel.
+  - Expanding/collapsing is interactive even post-selection.
+- Clicking on `[channels-list__row__video]` opens it in `[side-modal]`:
+  - Playable video, rating option, and annotations visible.
+  - Annotations appear in _read only mode_, with edit functionality for author-created annotations.
+  - If multiple annotations exist, the most recent is shown, with a "show previous annotations" link.
+  - Annotations are truncated with a "Show more" option.
+- `[side-modal]` navigation:
+  - Breadcrumb toolbar allows viewing all videos from the parent channel.
+  - Channel annotations are similarly displayed and editable.
+  - Clicking `[channels-list__row__header__title]` also opens `[side-modal]` for expanded video listings.
+  - Exiting via clicking outside or using `[side-modal__close-button]` returns to the homepage.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Account Page (`/account`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Title:** "Account"
 
-## Deploy on Vercel
+### Collections List Page (`/collections`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Title:** "Collections"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Collection Detail Page (`/collections/:id`)
+
+- **Title:** "[Collection Name]"
+
+### Public Collection Page (`/[username slug]`)
+
+- **Title:** "Watch Like [Username]"
+
+## Dashboard Components
+
+- `[dashboard__start-new-share-button]`
+- `[dashboard__collections-list]`
+  - Abridged version includes headers (title, filter, sort) and pagination footer.
+
+## Search Channels Component
+
+- Defaults to searching subscribed channels for logged-in users.
+- Allows toggling between subscribed channels and YouTube search.
+- Includes `[search-channels__start-new-search]` for additional searches.
+
+## Channels List Component
+
+- Operates in two modes:
+  - _Read only mode_: Viewing only.
+  - _Selection mode_: Enables channel/video selections.
+- Rows can be collapsed or expanded to display videos.
+- Interactive elements: Titles, expand/collapse toggles, checkboxes, filtering, sorting, pagination.
+
+## Side Modal Component
+
+- Displays video players, annotations (editable or read-only), and share forms.
+- Includes breadcrumb navigation, header, close button, and toolbar functionalities.
