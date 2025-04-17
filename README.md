@@ -1,98 +1,148 @@
-## WatchLikeMe Technical Requirements
+# WatchLikeMe — MVP Requirements (April 2025)
 
-This document outlines the requirements for the WatchLikeMe application, structured clearly for readability and ease of implementation.
+## Core Value Proposition
 
-## Pages
+WatchLikeMe lets logged-in users curate named collections of their subscribed YouTube channels and videos, attach personalized notes, and share collections publicly with easy-to-remember URLs.
 
-### Home Page (`/`)
+---
 
-- **Title:** "WatchLikeMe Home"
-- **Visibility:** Both logged-in and logged-out users
+## User Roles & Capabilities
 
-#### Logged-Out Experience
+### Authenticated User (Google + YouTube login required)
 
-- Displays `[search-channels]` by default, set to YouTube search only.
-- Users enter search keywords or paste YouTube channel/video URLs.
-- A floating suggestions menu appears with related YouTube channels/videos.
-- Users select from suggestions; clicking outside dismisses the menu.
-- Selecting a suggestion replaces `[search-channels]` with `[channels-list]` and displays `[search-channels__start-new-search]` for new searches.
-- `[channels-list]` is in _selection mode_, allowing channel/video selection.
-- `[channels-list__row]` items can expand/collapse:
-  - Collapsed: Shows `[channels-list__row__header__checkbox]` and expand toggle.
-  - Expanded: Displays a horizontally scrolling video panel.
-- Layout variations:
-  - Main area: Rows scroll horizontally.
-  - `[side-modal]`: Grid layout.
-- Adding a new channel via `[search-channels]` appends it to `[channels-list]`.
-  - Channel selection: Adds as collapsed row.
-  - Video selection: Adds as expanded, with video selected.
+- Browse own YouTube subscriptions and liked videos.
+- Create, edit, and delete named public collections.
+- Select channels and/or individual videos from subscriptions.
+- Write and edit a single collection-level Markdown note.
+- Publish collections with custom URL slugs (`/username/my-favorites`).
+- View collections created by any user publicly.
 
-#### Logged-In Experience
+### Public Viewer (no login)
 
-- If not linked to YouTube:
-  - Shows disabled `[dashboard__start-new-share-button]`, a "Log in to YouTube" button, and `[search-channels]`.
-  - `[search-channels]` defaults to YouTube search.
-- Linked accounts:
-  - Displays abridged `[dashboard__collections-list]` (full list accessible via "More" button).
-  - `[search-channels]` defaults to user's subscribed channels, displaying a `[channels-list]` in _read only mode_.
-  - Typing in `[search-channels]` filters subscribed channels live without the floating suggestions menu.
-  - Toggling to YouTube search enables floating suggestions menu, behaving as logged-out.
-- Selecting a suggestion replaces `[channels-list]`:
-  - Channel selection: Adds as collapsed row.
-  - Video selection: Adds as expanded, with video selected.
-- `[channels-list]` modes:
-  - _Read-only mode_: Channels/videos viewable, non-selectable.
-  - _Selection mode_ (triggered by `[dashboard__start-new-share-button]`): Allows selections, with channel selections overriding videos.
-  - Selecting a video within a selected channel deselects the channel.
-  - Expanding/collapsing is interactive even post-selection.
-- Clicking on `[channels-list__row__video]` opens it in `[side-modal]`:
-  - Playable video, rating option, and annotations visible.
-  - Annotations appear in _read only mode_, with edit functionality for author-created annotations.
-  - If multiple annotations exist, the most recent is shown, with a "show previous annotations" link.
-  - Annotations are truncated with a "Show more" option.
-- `[side-modal]` navigation:
-  - Breadcrumb toolbar allows viewing all videos from the parent channel.
-  - Channel annotations are similarly displayed and editable.
-  - Clicking `[channels-list__row__header__title]` also opens `[side-modal]` for expanded video listings.
-  - Exiting via clicking outside or using `[side-modal__close-button]` returns to the homepage.
+- Access publicly shared collections.
+- Read collection notes provided by the creator.
+- Browse and expand channels within collections to view videos.
+- See visual indicators for videos "liked" by the creator.
 
-### Account Page (`/account`)
+_(No commenting, ratings, or anonymous sharing in MVP.)_
 
-- **Title:** "Account"
+---
 
-### Collections List Page (`/collections`)
+## URL Structure
 
-- **Title:** "Collections"
+| Entity               | URL Pattern                      |
+| -------------------- | -------------------------------- |
+| Main User Collection | `/[user-slug]`                   |
+| Named Collections    | `/[user-slug]/[collection-slug]` |
 
-### Collection Detail Page (`/collections/:id`)
+**Slug Generation:**
 
-- **Title:** "[Collection Name]"
+- Auto-generated from collection name (`My Favorites → my-favorites`).
+- Editable by the user before saving.
+- Slug uniqueness enforced per user.
 
-### Public Collection Page (`/[username slug]`)
+---
 
-- **Title:** "Watch Like [Username]"
+## Key Pages & Routes
 
-## Dashboard Components
+| Page / Component       | Route                     | Description                                                          |
+| ---------------------- | ------------------------- | -------------------------------------------------------------------- |
+| Home / Dashboard       | `/`                       | User's subscriptions, existing collections, "New Collection" button. |
+| Collections List       | `/collections`            | List and manage user's own collections.                              |
+| New Collection (Modal) | Modal overlay             | Create collection: name, select items, write note, save.             |
+| Edit Collection        | `/collections/:slug/edit` | Edit existing collections.                                           |
+| Public Collection      | `/[user-slug]/[slug]`     | View shared collection publicly.                                     |
 
-- `[dashboard__start-new-share-button]`
-- `[dashboard__collections-list]`
-  - Abridged version includes headers (title, filter, sort) and pagination footer.
+---
 
-## Search Channels Component
+## User Interface & Flows
 
-- Defaults to searching subscribed channels for logged-in users.
-- Allows toggling between subscribed channels and YouTube search.
-- Includes `[search-channels__start-new-search]` for additional searches.
+### Creating a New Collection (Modal Flow):
 
-## Channels List Component
+1. Click **"New Collection"** button; side-modal appears.
+2. Enter **collection name** (slug auto-generated, editable).
+3. **Search/filter** own YouTube subscriptions by channel name.
+   - Expand channels to view individual videos (horizontal scroll).
+4. **Select items**:
+   - Checkboxes for channels and/or videos.
+   - Channel selection overrides individual videos previously selected within the same channel.
+5. Preview selected items in footer ("shopping cart") with publish dates (newest first).
+6. Write a single **Markdown note** explaining your collection.
+7. **Save Collection**:
+   - Redirects to public collection view (`/username/slug`).
+   - "Cancel" discards all progress (no drafts saved in MVP).
 
-- Operates in two modes:
-  - _Read only mode_: Viewing only.
-  - _Selection mode_: Enables channel/video selections.
-- Rows can be collapsed or expanded to display videos.
-- Interactive elements: Titles, expand/collapse toggles, checkboxes, filtering, sorting, pagination.
+### Public Collection View:
 
-## Side Modal Component
+- Displays collection name, creator info, and markdown-rendered note.
+- Channels listed newest first; expandable to show videos.
+- Videos visually indicate if creator previously "liked" them on YouTube.
+- Videos embedded via YouTube iframe.
 
-- Displays video players, annotations (editable or read-only), and share forms.
-- Includes breadcrumb navigation, header, close button, and toolbar functionalities.
+---
+
+## Functional Requirements
+
+- **Authentication**: Google OAuth only; JWT stored securely in HTTP-only cookies.
+- **YouTube API Integration**: Retrieve user's subscriptions and "liked" videos.
+- **Search**: Client-side filtering of subscriptions by channel name.
+- **Item Ordering**: Channels/videos shown by newest publish date first.
+- **Markdown Notes**: Simple textarea with live preview via `react-markdown` (GitHub-flavored markdown supported).
+- **Public Access**: Collections publicly viewable, editing restricted to creator only.
+- **SEO**: SSR pages with metadata (`<title>`, `<meta description>`, OpenGraph).
+- **Security**: CORS restrictions, JWT auth, input validation via Zod.
+
+---
+
+## Technology Stack
+
+| Layer              | Chosen Tech                       |
+| ------------------ | --------------------------------- |
+| Hosting            | Netlify + `@netlify/next` adapter |
+| Frontend Framework | Next.js (React)                   |
+| Styling            | Tailwind CSS, shadcn/ui           |
+| Database           | PostgreSQL                        |
+| ORM                | Prisma                            |
+| Backend / API      | Express.js (Netlify Functions)    |
+| Authentication     | JWT + Google OAuth                |
+| Rich-text Editor   | Markdown (`react-markdown`)       |
+| UUID Generation    | uuid package                      |
+| Validation         | Zod                               |
+| External APIs      | YouTube Data API v3               |
+| Utilities          | slugify, date-fns                 |
+
+---
+
+## Non-Functional Requirements
+
+- **Deployment**: Continuous deployments via Netlify.
+- **Accessibility**: WCAG AA-compliant colors, keyboard-navigable modal.
+- **Performance**: SSR public pages; target TTI ≤ 1 second.
+- **Testing**: Basic smoke tests for key user flows (optional automation with Cypress/Playwright).
+
+---
+
+## Post-MVP Backlog (Out-of-Scope)
+
+- Channel/video-level notes/documentation.
+- Commenting/chat functionality.
+- Anonymous share links.
+- Ratings system and detailed activity feeds.
+- Drag-and-drop reordering of items.
+- Additional authentication methods.
+- Email/SMS notifications.
+- Global YouTube search beyond user subscriptions.
+
+---
+
+## Next Steps:
+
+With these requirements defined, the next phases will include:
+
+- Finalize **Prisma schema**.
+- Define precise **REST API endpoints**.
+- Create initial **UI and database scaffolding**.
+
+---
+
+_This MVP scope ensures a focused, achievable first release, providing foundational value and clear opportunities for future enhancements._
